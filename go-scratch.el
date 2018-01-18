@@ -35,6 +35,21 @@
   :prefix "go-scratch"
   :group 'languages)
 
+(defvar go-scratch-show-outbuf--always 'always
+  "Always show output buffer after completion.")
+
+(defvar go-scratch-show-outbuf--multiline 'multiline
+  "Show output buffer after completion if there are multiple lines in the output.")
+
+(defcustom go-scratch-show-outbuf nil
+  "Show output buffer instead of sending output to message area.
+
+Either always, or only when the output has multiple lines."
+  :type `(radio (const :tag "Never" nil)
+                (const :tag "Multiline" ,go-scratch-show-outbuf--multiline)
+                (const :tag "Always" ,go-scratch-show-outbuf--always))
+  :group 'go-scratch)
+
 (defcustom go-scratch-timeout 3
   "Timeout length for scratch processes, in seconds."
   :type 'number
@@ -79,7 +94,9 @@ func main() {
 (defun go-scratch-eval-buffer ()
   "Compile and evaluate the current buffer.
 
-Program stdout will be printed to the message output."
+Program stdout will be printed to the message output unless
+`go-scratch-show-outbuf' is non-nil, in which case the output
+will be shown in a buffer splib below the go-scratch buffer."
   (interactive)
   (let ((gofmt-show-errors nil))
     (gofmt))
@@ -101,15 +118,20 @@ Program stdout will be printed to the message output."
 (defun go-scratch--run-sentinal (proc _)
   "Handle process change for go run process PROC."
   (when (eq (process-status proc) 'exit)
-    (let ((success (zerop (process-exit-status proc))))
-      (with-current-buffer (get-buffer go-scratch-outbuf)
+    (let ((success (zerop (process-exit-status proc)))
+          (outbuf (get-buffer go-scratch-outbuf)))
+      (with-current-buffer outbuf
         ;; Trim extra newline
         (goto-char (- (point-max) 1))
         (when (looking-at-p "\n")
           (delete-char 1))
 
         (if success
-            (message "%s" (buffer-string))
+            (if (or (equal go-scratch-show-outbuf go-scratch-show-outbuf--always)
+                    (and (equal go-scratch-show-outbuf go-scratch-show-outbuf--multiline)
+                         (> (count-lines (point-min) (point-max)) 1)))
+                (display-buffer-below-selected outbuf nil)
+              (message "%s" (buffer-string)))
           (message "Compilation failed: %s" (buffer-string)))))))
 
 (defvar go-scratch-mode-map

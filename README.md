@@ -23,3 +23,15 @@ default) to finish.
 
 (add-hook 'go-mode-hook #'my-go-hook)
 ```
+
+### Options
+
+#### `go-scratch-show-outbuf`
+
+You can choose to show the output buffer in certain circumstances
+
+- `(setq go-scratch-show-outbuf nil)`: Always show output in the echo area. This is the default
+- `(setq go-scratch-show-outbuf 'always)`: Always show output in a buffer
+- `(setq go-scratch-show-outbuf 'multiline)`: If the output is one line, show in the echo area, otherwise, pop up the output in a buffer
+
+You can also `M-x customize` this option
