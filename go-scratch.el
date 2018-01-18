@@ -40,6 +40,11 @@
   :type 'number
   :group 'go-scratch)
 
+(defcustom go-scratch-save-does-eval nil
+  "\\<go-scratch-mode-map> If non-nil, do an evaluate the scratch buffer with the default save keyboard binding."
+  :type 'boolean
+  :group 'go-scratch)
+
 (defvar go-scratch-buffer-name "*go-scratch*"
   "The buffer name for the Go scratch buffer.")
 
@@ -112,11 +117,19 @@ Program stdout will be printed to the message output."
             (message "%s" (buffer-string))
           (message "Compilation failed: %s" (buffer-string)))))))
 
+(defun go-scratch-save-or-eval ()
+  "Either save or eval the do-scratch buffer depending on the setting of `go-scratch-save-does-eval'."
+  (interactive)
+  (if go-scratch-save-does-eval
+      (go-scratch-eval-buffer)
+    (save-buffer)))
+
 (defvar go-scratch-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map go-mode-map)
     (define-key map (kbd "C-c C-c") #'go-scratch-eval-buffer)
     (define-key map (kbd "C-c C-p") #'go-play-buffer)
+    (define-key map (kbd "C-x C-s") #'go-scratch-save-or-eval)
     map))
 
 (define-derived-mode go-scratch-mode go-mode "Go scratch interaction"

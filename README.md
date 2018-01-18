@@ -23,3 +23,11 @@ default) to finish.
 
 (add-hook 'go-mode-hook #'my-go-hook)
 ```
+
+### Options
+
+#### `go-scratch-save-does-eval`
+
+Setting this to a non-nil value will evaluate the buffer with the keybinding `C-x C-s`
+
+You can also `M-x customize` this option
